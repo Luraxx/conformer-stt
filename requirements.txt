@@ -33,3 +33,6 @@ onnx>=1.15.0
 # Utils
 pyyaml>=6.0
 tqdm>=4.66.0
+
+# HuggingFace Hub (for model sharing)
+huggingface_hub>=0.20.0

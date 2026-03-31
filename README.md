@@ -40,6 +40,8 @@ conformer-stt/
 │   ├── evaluate.py                # WER/CER evaluation on test sets
 │   ├── transcribe.py              # Single-file transcription CLI
 │   ├── export_model.py            # ONNX export
+│   ├── push_to_hub.py             # Upload trained model to HuggingFace
+│   ├── pull_from_hub.py           # Download model from HuggingFace & transcribe
 │   └── run_api.py                 # API server launcher
 ├── tests/                         # Unit tests (pytest)
 ├── data/                          # Audio data & manifests (not tracked, see below)
@@ -155,6 +157,26 @@ python scripts/run_api.py \
 
 # Test with curl
 curl -X POST http://localhost:8000/transcribe -F "audio=@audio.wav"
+```
+
+### 8. Push trained model to HuggingFace
+
+```bash
+pip install huggingface_hub
+huggingface-cli login
+
+python scripts/push_to_hub.py \
+    --checkpoint models/checkpoints/best_model.pt \
+    --model_config config/model_config.yaml \
+    --repo_id your-username/conformer-stt-medium
+```
+
+### 9. Download & use a model from HuggingFace
+
+```bash
+python scripts/pull_from_hub.py \
+    --repo_id your-username/conformer-stt-medium \
+    --audio path/to/audio.wav
 ```
 
 ## Architecture
