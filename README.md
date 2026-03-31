@@ -18,9 +18,11 @@ A fully functional, from-scratch Speech-to-Text (STT) engine built with PyTorch 
 ```
 conformer-stt/
 ├── config/
-│   ├── model_config.yaml          # Full model (12 layers, 256 dim, ~30M params)
+│   ├── model_config.yaml          # Medium model (16 layers, 256 dim, ~26M params)
+│   ├── model_config_large.yaml    # Large model (18 layers, 512 dim, ~117M params)
 │   ├── model_config_small.yaml    # Small model for testing (2 layers, 64 dim)
-│   ├── train_config.yaml          # Training hyperparameters
+│   ├── train_config.yaml          # Training config (medium, 2x RTX 6000)
+│   ├── train_config_large.yaml    # Training config (large model)
 │   ├── train_config_small.yaml    # Quick test training config
 │   └── inference_config.yaml      # Inference & API config
 ├── src/
@@ -95,12 +97,17 @@ python scripts/prepare_data.py --dataset dummy --output data/manifests
 ### 3. Train
 
 ```bash
-# Full model on GPU
+# Medium model (~26M params) on 2x RTX 6000
 python scripts/train.py \
     --model_config config/model_config.yaml \
     --train_config config/train_config.yaml
 
-# Quick test with small model
+# Large model (~117M params, Whisper-level) on 2x RTX 6000
+python scripts/train.py \
+    --model_config config/model_config_large.yaml \
+    --train_config config/train_config_large.yaml
+
+# Quick test with small model (CPU, minutes)
 python scripts/train.py \
     --model_config config/model_config_small.yaml \
     --train_config config/train_config_small.yaml
@@ -162,10 +169,23 @@ Audio (16 kHz WAV)
 
 **Model sizes:**
 
-| Config | Layers | d_model | Heads | Parameters | Use case |
-|--------|--------|---------|-------|------------|----------|
-| `model_config.yaml` | 12 | 256 | 4 | ~30M | Full training |
-| `model_config_small.yaml` | 2 | 64 | 4 | ~250K | Testing & debugging |
+| Config | Layers | d_model | Heads | Parameters | Comparable to |
+|--------|--------|---------|-------|------------|---------------|
+| `model_config_small.yaml` | 2 | 64 | 4 | ~250K | Testing only |
+| `model_config.yaml` | 16 | 256 | 4 | ~26M | Whisper Base (74M) |
+| `model_config_large.yaml` | 18 | 512 | 8 | ~117M | Whisper Small (244M) |
+
+**Whisper comparison (target WER on LibriSpeech test-clean):**
+
+| Model | Parameters | Expected WER |
+|-------|------------|-------------|
+| Whisper Tiny | 39M | ~7.6% |
+| Whisper Base | 74M | ~5.0% |
+| **Our Medium** | **26M** | **~8-12%** |
+| Whisper Small | 244M | ~3.4% |
+| **Our Large** | **117M** | **~4-7%** |
+| Whisper Medium | 769M | ~2.9% |
+| Whisper Large v3 | 1.5B | ~2.0% |
 
 ## Training Configuration
 
@@ -201,12 +221,23 @@ All 36 tests covering tokenizer, feature extraction, augmentation, model archite
 
 ## Hardware Recommendations
 
-| GPU | VRAM | Batch Size | Est. Time (100h data) |
-|-----|------|------------|----------------------|
-| RTX 4070 | 12 GB | 16 | ~24h |
-| RTX 4080 | 16 GB | 32 | ~14h |
-| RTX 6000 | 48 GB | 64+ | ~6h |
-| 2× RTX 6000 | 96 GB | 128+ | ~3h |
+**Medium model (26M):**
+
+| GPU | VRAM | Batch Size | Est. Time (100h data, 100 epochs) |
+|-----|------|------------|----------------------------------|
+| RTX 4070 | 12 GB | 16 | ~20h |
+| RTX 4080 | 16 GB | 32 | ~12h |
+| RTX 6000 | 48 GB | 64 | ~5h |
+| 2× RTX 6000 | 96 GB | 128 | ~3h |
+
+**Large model (117M):**
+
+| GPU | VRAM | Batch Size | Est. Time (100h data, 120 epochs) |
+|-----|------|------------|----------------------------------|
+| RTX 4070 | 12 GB | 8 | ~60h |
+| RTX 4080 | 16 GB | 16 | ~36h |
+| RTX 6000 | 48 GB | 32 | ~14h |
+| 2× RTX 6000 | 96 GB | 64 | ~8h |
 
 ## License
 

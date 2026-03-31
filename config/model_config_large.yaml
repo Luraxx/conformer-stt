@@ -1,0 +1,37 @@
+# Model Configuration - Large (120M params, comparable to Whisper Small)
+# Target: ~120M parameters for high-accuracy STT
+# Hardware: 2x RTX 6000 48GB — fits easily with batch_size 32-64
+model:
+  type: conformer_ctc
+  encoder:
+    num_layers: 18
+    d_model: 512
+    num_heads: 8
+    feed_forward_dim: 2048
+    conv_kernel_size: 31
+    dropout: 0.1
+    input_dim: 80
+    subsampling_factor: 4
+    subsampling_conv_channels: 512
+  decoder:
+    type: ctc
+    vocab_size: 29
+    blank_id: 0
+
+# Feature Extraction
+features:
+  type: log_mel
+  sample_rate: 16000
+  n_mels: 80
+  n_fft: 512
+  win_length: 400
+  hop_length: 160
+  f_min: 20.0
+  f_max: 8000.0
+  normalize: true
+
+# Tokenizer
+tokenizer:
+  type: character
+  vocab_path: null
+  lowercase: true
