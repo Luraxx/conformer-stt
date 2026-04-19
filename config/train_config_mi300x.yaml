@@ -1,0 +1,52 @@
+# Training Configuration - Optimized for AMD Instinct MI300X (192GB VRAM)
+# Single MI300X GPU, 20 CPU cores, 235GB RAM
+# With 192GB VRAM we can run the XLarge (500M) model with large batches
+training:
+  epochs: 100
+  batch_size: 64              # MI300X has 192GB — plenty for large batches
+  learning_rate: 0.002
+  min_lr: 0.000005
+  warmup_steps: 8000
+  scheduler: cosine_warmup
+  optimizer: adamw
+  weight_decay: 0.0001
+  gradient_clip_norm: 5.0
+  accumulation_steps: 1       # no need for accumulation with 192GB
+  mixed_precision: true
+  seed: 42
+
+  # Checkpointing
+  save_every_n_epochs: 5
+  keep_last_n_checkpoints: 3
+  checkpoint_dir: models/checkpoints
+
+  # Logging
+  log_every_n_steps: 50
+  use_wandb: false
+  wandb_project: conformer-stt-mi300x
+
+# Data
+data:
+  train_manifest: data/manifests/train_clean_100.json
+  val_manifest: data/manifests/dev_clean.json
+  test_manifest: data/manifests/test_clean.json
+  max_duration: 30.0          # can handle longer clips with 192GB
+  min_duration: 0.5
+  num_workers: 16             # 20 cores available, leave some for system
+  pin_memory: true
+
+# Augmentation
+augmentation:
+  spec_augment:
+    enabled: true
+    freq_masks: 2
+    freq_mask_width: 27
+    time_masks: 10
+    time_mask_width: 0.05
+  speed_perturb:
+    enabled: true
+    factors: [0.9, 0.95, 1.0, 1.05, 1.1]
+  noise_inject:
+    enabled: false
+    noise_dir: null
+    snr_range: [5, 20]

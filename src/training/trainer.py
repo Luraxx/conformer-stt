@@ -7,7 +7,7 @@ from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader
-from torch.cuda.amp import GradScaler
+from torch.amp import GradScaler
 import jiwer
 
 from ..model.model import STTModel
@@ -56,7 +56,7 @@ class Trainer:
 
         # Mixed precision
         self.use_amp = train_cfg.get("mixed_precision", False) and self.device.type == "cuda"
-        self.scaler = GradScaler(enabled=self.use_amp)
+        self.scaler = GradScaler("cuda", enabled=self.use_amp)
 
         # Training params
         self.epochs = train_cfg.get("epochs", 100)
